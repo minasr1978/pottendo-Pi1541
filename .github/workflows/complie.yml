@@ -26,6 +26,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: pi1541-repo
+          fetch-depth: 0 # Fetches all tags to fix the "git describe" fatal warning
 
       # Step 3: Check out the CORRECT circle dependency repository right next to it
       - name: Checkout circle dependency
@@ -40,7 +41,13 @@ jobs:
           cd circle-stdlib
           ./configure -r 1
 
-      # Step 5: Run the compile process targeting the Raspberry Pi Zero V1
+      # Step 5: Patch the missing include in performance.c
+      - name: Patch performance.c error
+        run: |
+          cd pi1541-repo
+          sed -i '1s/^/#include <inttypes.h>\n/' src/performance.c
+
+      # Step 6: Run the compile process targeting the Raspberry Pi Zero V1
       - name: Run Makefile (Pi Zero Legacy Target)
         run: |
           cd pi1541-repo
