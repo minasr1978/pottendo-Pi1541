@@ -1,4 +1,4 @@
-name: Compile Pi1541 Project for Pi Zero
+name: Compile Pi1541 and CBM-FileBrowser
 
 on:
   push:
@@ -15,13 +15,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Install toolchains needed for cross-compiling ARM kernels
-      - name: Install ARM Compiler Toolchain
+      # Step 1: Install ALL toolchains (ARM cross-compiler, ACME assembler, and VICE tools)
+      - name: Install Compilers and Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-none-eabi git build-essential
+          sudo apt-get install -y gcc-arm-none-eabi git build-essential acme vice
 
-      # Step 2: Check out your main Pi1541 code into a specific folder
+      # Step 2: Check out your main Pi1541 code
       - name: Checkout Pi1541 code
         uses: actions/checkout@v4
         with:
@@ -35,7 +35,7 @@ jobs:
           repository: rsta2/circle
           path: circle-stdlib
 
-      # Step 4: Configure the Circle dependency library for Raspberry Pi Zero
+      # Step 4: Configure the Circle dependency library
       - name: Configure Circle Library
         run: |
           cd circle-stdlib
@@ -47,17 +47,24 @@ jobs:
           cd pi1541-repo
           sed -i 's/PRIu64/"llu"/g' src/performance.c
 
-      # Step 6: Run the compile process targeting the Raspberry Pi Zero V1
-      - name: Run Makefile (Pi Zero Legacy Target)
+      # Step 6: Run the main compile process targeting the Raspberry Pi Zero V1
+      - name: Run Main Makefile (Pi Zero Kernel)
         run: |
           cd pi1541-repo
           make RASPPI=0 legacy
 
-      # Step 7: Save the compiled files so you can download them!
+      # Step 7: Compile the Commodore File Browser programs and the D64 disk image
+      - name: Run FileBrowser Makefile
+        run: |
+          cd pi1541-repo/CBM-FileBrowser_v1.6/sources
+          make all
+
+      # Step 8: Save everything (Kernel, PRG files, and D64 Image) as Artifacts!
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PiZero-Kernel-Image
+          name: PiZero-Pi1541-Complete-Package
           path: |
-            pi1541-repo/kernel.img
-            pi1541-repo/kernel.map
+            pi1541-repo/kernel.*
+            pi1541-repo/CBM-FileBrowser_v1.6/sources/*.prg
+            pi1541-repo/CBM-FileBrowser_v1.6/sources/*.d64
