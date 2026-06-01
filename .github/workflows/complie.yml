@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Install toolchains needed for cross-compiling ARM (Raspberry Pi Zero) kernels
+      # Step 1: Install toolchains needed for cross-compiling ARM kernels
       - name: Install ARM Compiler Toolchain
         run: |
           sudo apt-get update
@@ -28,26 +28,24 @@ jobs:
           path: pi1541-repo
           fetch-depth: 0
 
-      # Step 3: Check out the CORRECT circle dependency repository right next to it
+      # Step 3: Check out the CORRECT circle dependency repository
       - name: Checkout circle dependency
         uses: actions/checkout@v4
         with:
           repository: rsta2/circle
           path: circle-stdlib
 
-      # Step 4: Configure the Circle dependency library for Raspberry Pi Zero (Model 1)
+      # Step 4: Configure the Circle dependency library for Raspberry Pi Zero
       - name: Configure Circle Library
         run: |
           cd circle-stdlib
           ./configure -r 1
 
-      # Step 5: Patch the missing include in performance.c (Bulletproof method)
+      # Step 5: The Nuclear Option - Replace the broken macro with the literal string
       - name: Patch performance.c error
         run: |
           cd pi1541-repo
-          echo "#include <inttypes.h>" > temp.c
-          cat src/performance.c >> temp.c
-          mv temp.c src/performance.c
+          sed -i 's/PRIu64/"llu"/g' src/performance.c
 
       # Step 6: Run the compile process targeting the Raspberry Pi Zero V1
       - name: Run Makefile (Pi Zero Legacy Target)
