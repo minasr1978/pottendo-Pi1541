@@ -41,7 +41,7 @@ jobs:
           cd circle-stdlib
           ./configure -r 1
 
-      # Step 5: The Nuclear Option - Replace the broken macro with the literal string
+      # Step 5: Patch the missing include in performance.c
       - name: Patch performance.c error
         run: |
           cd pi1541-repo
@@ -52,3 +52,12 @@ jobs:
         run: |
           cd pi1541-repo
           make RASPPI=0 legacy
+
+      # Step 7: Save the compiled files so you can download them!
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PiZero-Kernel-Image
+          path: |
+            pi1541-repo/kernel.img
+            pi1541-repo/kernel.map
