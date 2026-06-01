@@ -1,4 +1,4 @@
-name: Compile Project
+name: Compile Pi1541 Project for Pi Zero
 
 on:
   push:
@@ -13,10 +13,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Run Makefile
+    steps:
+      # Step 1: Install toolchains needed for cross-compiling ARM (Raspberry Pi) kernels
+      - name: Install ARM Compiler Toolchain
         run: |
-          make
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi git build-essential
+
+      # Step 2: Check out your main Pi1541 code
+      - name: Checkout Pi1541 code
+        uses: actions/checkout@v4
+        with:
+          path: pi1541-repo
+
+      # Step 3: Check out the required circle-stdlib dependency right next to it
+      - name: Checkout circle-stdlib dependency
+        uses: actions/checkout@v4
+        with:
+          repository: rsta2/circle-stdlib
+          path: circle-stdlib
+
+      # Step 4: Run the compile process targeting the Raspberry Pi Zero V1
+      - name: Run Makefile (Pi Zero Legacy Target)
+        run: |
+          cd pi1541-repo
+          make RASPPI=0 legacy
